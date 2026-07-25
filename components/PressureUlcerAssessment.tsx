@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { BradenScores, BradenQScores } from '../types';
+import { BradenScores, BradenQScores, GlamorganScores } from '../types';
 import AssessmentResultDisplay from './common/AssessmentResultDisplay';
 import AssessmentRow from './common/AssessmentRow';
 import ModuleHeader from './common/ModuleHeader';
@@ -236,6 +236,169 @@ const BradenQScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) 
             />
         </div>
     );
+};
+
+const getGlamorganRecommendations = (riskLevel: string): string[] => {
+  switch(riskLevel) {
+    case 'none':
+      return [
+        "پایش و ارزیابی روتین پوستی کودک در هر شیفت کاری.",
+        "ثبت امتیاز در کاردکس پرستاری و ارزیابی مجدد روزانه یا هنگام تغییر شرایط بالینی بیمار."
+      ];
+    case 'at_risk':
+      return [
+        "برنامه تغییر پوزیشن منظم کودک حداقل هر ۳ الی ۴ ساعت همراه با ثبت دقیق در فرم مراقبت.",
+        "ارزیابی پوستی مکرر در برجستگی‌های استخوانی و محل تماس با ملحفه یا پوشش‌ها.",
+        "استفاده از کرم‌های سدکننده محافظ پوستی (مانند زینک اکساید) در صورت وجود رطوبت.",
+        "استفاده از تشک یا پد کاهنده فشار متناسب با جثه اطفال."
+      ];
+    case 'high':
+      return [
+        "تغییر پوزیشن مکرر کودک حداقل هر ۲ ساعت و اجتناب از قرارگیری طولانی‌مدت روی یک برجستگی استخوانی.",
+        "پایش و ارزیابی دقیق محل تماس وسایل و تجهیزات پزشکی (مانند ماسک CPAP، پروب پالس‌اکسیمتر، لوله تراشه، گچ و آتل) حداقل هر ۴ ساعت و جابجایی پروب‌ها.",
+        "استفاده از پانسمان‌های فوم سیلیکونی یا هیدروکلوئید محافظ تحت تجهیزات پزشکی جهت کاهش فشار موضعی.",
+        "ارزیابی تغذیه‌ای و درخواست مشاوره تغذیه جهت بهینه‌سازی کالری و پروتئین دریافتی."
+      ];
+    case 'very_high':
+      return [
+        "برنامه‌ریزی دقیق تغییر وضعیت بیمار هر ۱ الی ۲ ساعت به صورت فوق‌العاده ملایم با دو پرسنل.",
+        "استفاده فوری از تشک‌های پیشرفته مواج یا تشک‌های با فشار کم مخصوص اطفال (Low-Air-Loss).",
+        "آزادسازی موقت فشار تجهیزات پزشکی و جابجایی مکرر محل اتصال آن‌ها (مانند تعویض محل پروب پالس‌اکسیمتر هر ۲ ساعت).",
+        "استفاده از پانسمان‌های فوم سیلیکونی پیشرفته بر روی ناحیه ساکروم، پاشنه پا و استخوان پس‌سری (Occiput).",
+        "پایش مستمر اکسیژن‌رسانی بافتی، زمان پر شدن مویرگی (CRT) و مانیتورینگ دقیق همودینامیک و تغذیه."
+      ];
+    default:
+      return [];
+  }
+};
+
+const GlamorganScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) => {
+  const [scores, setScores] = useState<GlamorganScores>({
+    mobility: 0,
+    equipment: 0,
+    anemiaPerfusion: 0,
+    incontinenceMoisture: 0,
+    nutrition: 0,
+    weight: 0
+  });
+
+  useEffect(() => {
+    const totalScore = scores.mobility + scores.equipment + scores.anemiaPerfusion + scores.incontinenceMoisture + scores.nutrition + scores.weight;
+    let interpretation = "", color = "", icon = "", riskLevel = "";
+
+    if (totalScore >= 20) {
+      riskLevel = "very_high";
+      interpretation = "خطر بسیار بالای زخم فشاری (Very High Risk)";
+      color = "bg-rose-700";
+      icon = "🚨";
+    } else if (totalScore >= 15) {
+      riskLevel = "high";
+      interpretation = "خطر بالای زخم فشاری (High Risk)";
+      color = "bg-orange-600";
+      icon = "🟠";
+    } else if (totalScore >= 10) {
+      riskLevel = "at_risk";
+      interpretation = "در معرض خطر زخم فشاری / خطر متوسط (At Risk)";
+      color = "bg-amber-500";
+      icon = "🟡";
+    } else {
+      riskLevel = "none";
+      interpretation = "خطر پایین یا عدم وجود خطر زخم فشاری (Low / Minimal Risk)";
+      color = "bg-emerald-600";
+      icon = "✅";
+    }
+
+    const recommendations = getGlamorganRecommendations(riskLevel);
+    onResult({
+      score: totalScore,
+      interpretation,
+      color,
+      icon,
+      recommendations,
+      toolUsed: 'Glamorgan'
+    });
+  }, [scores]);
+
+  const handleSelect = (category: keyof GlamorganScores, value: number) => {
+    setScores(prev => ({ ...prev, [category]: value }));
+  };
+
+  return (
+    <div className="grid gap-12 pt-8">
+      <div className="bg-indigo-950/40 p-6 rounded-3xl border border-indigo-500/10 text-center">
+        <h4 className="text-xl font-black text-white">مقیاس ارزیابی خطر زخم فشاری گلامورگان (Glamorgan Pediatric Scale)</h4>
+        <p className="text-slate-400 text-sm mt-1">ابزار ارزیابی تخصصی خطر زخم فشاری اطفال با تمرکز بر تجهیزات پزشکی، وضعیت تحرک، پرفیوژن و تغذیه</p>
+      </div>
+
+      <AssessmentRow
+        title="۱. وضعیت تحرک و قابلیت جابجایی (Mobility)"
+        description="ارزیابی میزان تحرک مستقل کودک یا محدودیت ناشی از وسایل فیکس‌کننده"
+        currentValue={scores.mobility}
+        onSelect={(v) => handleSelect('mobility', v)}
+        options={[
+          { label: "تحرک نرمال و طبیعی متناسب با سن کودک (امتیاز ۰)", value: 0 },
+          { label: "کاهش تحرک متناسب با سن کودک (امتیاز ۱)", value: 1 },
+          { label: "ناتوانی در جابجایی یا تغییر پوزیشن به صورت مستقل (امتیاز ۱۰)", value: 10 },
+          { label: "عدم توانایی حرکت مستقل به همراه محدودیت توسط تجهیزات فیکس‌کننده یا کشش/تراکشن (امتیاز ۱۵)", value: 15 }
+        ]}
+      />
+
+      <AssessmentRow
+        title="۲. وسایل و تجهیزات پزشکی (Medical Devices / Equipment)"
+        description="وجود تجهیزات بیمارستانی یا وسایل فشارآورنده و سایشی روی پوست کودک"
+        currentValue={scores.equipment}
+        onSelect={(v) => handleSelect('equipment', v)}
+        options={[
+          { label: "بدون وسایل یا تجهیزات پزشکی فشارآورنده روی پوست (امتیاز ۰)", value: 0 },
+          { label: "وجود تجهیزات فشارآورنده یا سایشی بر روی پوست (مانند CPAP، لوله تراشه، پروب پالس‌اکسیمتر، گچ، آتل، سوند یا لوله‌ها) (امتیاز ۱۵)", value: 15 }
+        ]}
+      />
+
+      <AssessmentRow
+        title="۳. کم‌خونی شدید یا اختلال پرفیوژن بافتی (Anemia / Poor Perfusion)"
+        description="بررسی وجود کم‌خونی شدید، شوک، سیانوز یا زمان پر شدن مویرگی طولانی (>۳ ثانیه)"
+        currentValue={scores.anemiaPerfusion}
+        onSelect={(v) => handleSelect('anemiaPerfusion', v)}
+        options={[
+          { label: "خیر؛ پرفیوژن بافتی طبیعی و عدم وجود کم‌خونی شدید (امتیاز ۰)", value: 0 },
+          { label: "بله؛ وجود کم‌خونی شدید یا اختلال در پرفیوژن بافتی (امتیاز ۱)", value: 1 }
+        ]}
+      />
+
+      <AssessmentRow
+        title="۴. بی‌اختیاری و رطوبت پوست (Incontinence / Moisture)"
+        description="بررسی وجود بی‌اختیاری ادرار یا مدفوع غیرمرتبط با سن یا خیس شدن مکرر پوست"
+        currentValue={scores.incontinenceMoisture}
+        onSelect={(v) => handleSelect('incontinenceMoisture', v)}
+        options={[
+          { label: "کنترل کامل دفع یا رطوبت طبیعی متناسب با سن کودک (امتیاز ۰)", value: 0 },
+          { label: "بی‌اختیاری ادرار/مدفوع غیرمرتبط با سن یا پوست غالباً مرطوب (امتیاز ۱)", value: 1 }
+        ]}
+      />
+
+      <AssessmentRow
+        title="۵. وضعیت تغذیه و هیدراتاسیون (Inadequate Nutrition / Fluid Intake)"
+        description="کفایت دریافت مواد غذایی و مایعات روزانه"
+        currentValue={scores.nutrition}
+        onSelect={(v) => handleSelect('nutrition', v)}
+        options={[
+          { label: "تغذیه و دریافت مایعات کافی و مناسب سن (امتیاز ۰)", value: 0 },
+          { label: "تغذیه ضعیف یا دریافت مایعات ناکافی (امتیاز ۱)", value: 1 }
+        ]}
+      />
+
+      <AssessmentRow
+        title="۶. وزن و جثه بدن (Weight / Body Size)"
+        description="ارزیابی وزن کودک یا وجود ادم شدید بافتی"
+        currentValue={scores.weight}
+        onSelect={(v) => handleSelect('weight', v)}
+        options={[
+          { label: "وزن نرمال متناسب با سن کودک (امتیاز ۰)", value: 0 },
+          { label: "کم‌وزنی شدید / افت شدید وزن متناسب با سن یا وجود ادم شدید بافتی (امتیاز ۱)", value: 1 }
+        ]}
+      />
+    </div>
+  );
 };
 
 const getPushInterpretationAndRecommendations = (score: number, areaScore: number, exudate: number, tissue: number) => {
@@ -521,7 +684,7 @@ const PUSHScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) => 
 };
 
 const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ onBack, onHome }) => {
-  const [scale, setScale] = useState<"braden" | "bradenq" | "nsras" | "push" | null>(null);
+  const [scale, setScale] = useState<"braden" | "bradenq" | "glamorgan" | "nsras" | "push" | null>(null);
   const [result, setResult] = useState<any>(null);
 
   const handleBack = () => {
@@ -537,7 +700,7 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
     if (!scale) {
       return (
         <div className="space-y-12 pt-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
             <MainCard 
               title="ارزیابی بزرگسالان" 
               subtitle="Braden Scale" 
@@ -551,6 +714,13 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
               icon="👶" 
               onClick={() => setScale("bradenq")} 
               description="نسخه تعدیل‌شده و تخصصی کودکان و نوزادان بر اساس راهنمای جدید بروز زخم فشاری اطفال." 
+            />
+            <MainCard 
+              title="ارزیابی اطفال (Glamorgan)" 
+              subtitle="Glamorgan Scale" 
+              icon="🩹" 
+              onClick={() => setScale("glamorgan")} 
+              description="مقیاس تخصصی سنجش خطر زخم فشاری اطفال با ارزیابی دقیق نقش تجهیزات پزشکی، تحرک و پرفیوژن." 
             />
             <MainCard 
               title="ارزیابی نوزادان (NSRAS)" 
@@ -642,6 +812,7 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
     }
     if (scale === "braden") return <BradenScale onResult={setResult} />;
     if (scale === "bradenq") return <BradenQScale onResult={setResult} />;
+    if (scale === "glamorgan") return <GlamorganScale onResult={setResult} />;
     if (scale === "nsras") return <NSRASScale onResult={setResult} />;
     if (scale === "push") return <PUSHScale onResult={setResult} />;
   };

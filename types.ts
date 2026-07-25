@@ -30,8 +30,17 @@ export interface AssessmentResult {
   severity?: PainSeverity;
   interpretation?: string;
   recommendations?: string[];
-  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'BradenQ' | 'NSRAS' | 'Morse' | 'HumptyDumpty' | 'NeonatalFall' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS' | 'PediatricGCS' | 'NIPS' | 'CRIES' | 'PIPP';
+  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'BradenQ' | 'Glamorgan' | 'NSRAS' | 'Morse' | 'HumptyDumpty' | 'NeonatalFall' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS' | 'PediatricGCS' | 'NIPS' | 'CRIES' | 'PIPP';
   timestamp: Date;
+}
+
+export interface GlamorganScores {
+  mobility: number;
+  equipment: number;
+  anemiaPerfusion: number;
+  incontinenceMoisture: number;
+  nutrition: number;
+  weight: number;
 }
 
 export interface BPSScores {
